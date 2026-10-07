@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="vault-locked" data-vault-version="1.0.0" data-vault-app="invest-sim" data-vault-name="Investimentos">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://www.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://firestore.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com https://api.bcb.gov.br https://olinda.bcb.gov.br; img-src 'self' data:; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'">
+<meta name="referrer" content="no-referrer">
+<title>Investimentos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0E1210">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Investimentos">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="financ-ui.css">
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="stk-pkg-secure-ui.css">
+<link rel="stylesheet" href="apoio/apoio.css" id="dz-style">
+</head>
+<body class="locked">
+<div class="page">
+
+  <header class="app-head">
+    <div class="vp-bar" data-vault-profile-slot></div>
+    <div class="app-head-text">
+      <div class="eyebrow">MEUS INVESTIMENTOS · REGISTRO PESSOAL</div>
+      <h1>Investimentos</h1>
+      <p class="lede" id="dataHoje"></p>
+    </div>
+  </header>
+
+  <div class="alert alert-info" id="avisoTopo" hidden><i data-icon="info" data-size="18"></i><div style="flex:1">Aqui você só <b>anota</b> o que já investiu em bancos e corretoras. O app não compra, não vende e não movimenta dinheiro.</div><button type="button" class="btn btn-icon alert-close" id="btnAvisoFechar" aria-label="Fechar aviso"><i data-icon="x" data-size="16"></i></button></div>
+
+  <div class="card card-lg" id="resumoCard">
+    <div class="hero">
+      <div class="hero-label">PATRIMÔNIO ATUAL</div>
+      <div class="hero-amount" id="sumTotal">R$ 0,00</div>
+      <div id="sumDelta"></div>
+      <div class="hero-sub" id="sumTotalSub"></div>
+    </div>
+    <div class="stat-grid" style="margin-top:14px">
+      <div class="stat" id="statGanho"><div class="k">ganho</div><div class="v" id="sumGanho">R$ 0,00</div><div class="hero-sub" id="sumGanhoSub"></div></div>
+      <div class="stat" id="statJuros"><div class="k">juros renda fixa</div><div class="v" id="sumJuros">R$ 0,00</div><div class="hero-sub" id="sumJurosSub"></div></div>
+    </div>
+  </div>
+
+  <div class="alert alert-error" id="darfAlerta" hidden></div>
+
+  <div class="section-bar">
+    <h2 id="secaoTitulo">Carteira</h2>
+    <div class="menu-wrap">
+      <button type="button" class="btn btn-secondary btn-sm" id="btnSecoes" aria-haspopup="menu" aria-expanded="false" aria-controls="menuSecoes"><i data-icon="more-horizontal" data-size="18"></i> Seções</button>
+      <div class="menu-pop" id="menuSecoes" role="menu" aria-label="Seções" hidden></div>
+    </div>
+  </div>
+
+  <!-- CARTEIRA -->
+  <section class="panel active" id="panel-resumo">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">
+      <button type="button" class="btn btn-secondary btn-sm" id="btnAtualizar"><i data-icon="refresh" data-size="14"></i> Atualizar juros e dólar</button>
+      <span class="note" style="margin:0" id="atualizarStatus" aria-live="polite"></span>
+    </div>
+    <div class="section-title">Por tipo</div>
+    <div class="card" id="alocacao"></div>
+    <div class="section-title">Por banco e corretora</div>
+    <div id="listInstituicoes"></div>
+    <p class="note" id="fonteHint"></p>
+  </section>
+
+  <!-- RENDA FIXA -->
+  <section class="panel" id="panel-rendafixa">
+    <details class="add-box" id="addRF">
+      <summary class="btn btn-primary btn-block"><i data-icon="plus" data-size="16"></i> Anotar aplicação de renda fixa</summary>
+      <div class="card">
+        <form class="form-grid" id="formRF">
+          <label class="field wide">Banco ou corretora<input class="input" type="text" id="rfInst" maxlength="60" placeholder="ex: Nubank, Inter, XP" list="instList" autocomplete="off" required></label>
+          <label class="field">Tipo<select class="select" id="rfTipo"><option value="cdb">CDB/RDB</option><option value="lci">LCI</option><option value="lca">LCA</option><option value="tesouro">Tesouro Direto</option><option value="debenture">Debênture/CRI/CRA</option><option value="outro">Outro</option></select></label>
+          <label class="field">Rende<select class="select" id="rfIndexador"><option value="cdi">% do CDI</option><option value="pre">Prefixado (% a.a.)</option><option value="ipca">IPCA + % a.a.</option><option value="selic">Selic + % a.a.</option><option value="manual">Não sei: informo o saldo</option></select></label>
+          <label class="field" id="rfTaxaLabel">Taxa (% do CDI)<input class="input" type="number" id="rfTaxaNum" step="0.01" min="-10" max="1000" value="100" inputmode="decimal"></label>
+          <label class="field">Valor aplicado (R$)<input class="input" type="number" id="rfValor" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+          <label class="field">Data da aplicação<input class="input" type="date" id="rfData" required></label>
+          <label class="field">Vencimento (opcional)<input class="input" type="date" id="rfVenc"></label>
+          <label class="field wide">Apelido (opcional)<input class="input" type="text" id="rfNome" maxlength="80" placeholder="ex: reserva de emergência"></label>
+          <button type="submit" class="btn btn-primary wide">Anotar</button>
+        </form>
+        <p class="note">Os juros são calculados com o CDI, a Selic e o IPCA oficiais do Banco Central desde a data da aplicação. O banco pode mostrar alguns centavos de diferença.</p>
+      </div>
+    </details>
+    <div class="section-title">Aplicações</div>
+    <div class="card list-card" id="listRFAtivas"></div>
+    <div class="section-title">Resgatadas</div>
+    <div class="card list-card" id="listRFResgatadas"></div>
+  </section>
+
+  <!-- AÇÕES, FIIs, ETFs, BDRs -->
+  <section class="panel" id="panel-acoes">
+    <details class="add-box" id="addOp">
+      <summary class="btn btn-primary btn-block"><i data-icon="plus" data-size="16"></i> Anotar compra ou venda</summary>
+      <div class="card">
+        <form class="form-grid" id="formOperacao">
+          <label class="field">Ativo<input class="input" type="text" id="oTicker" required maxlength="12" placeholder="ex: PETR4" autocapitalize="characters" list="tickerList" autocomplete="off"></label>
+          <label class="field">Tipo<select class="select" id="oClasse"><option value="acao">Ação</option><option value="fii">FII</option><option value="etf">ETF</option><option value="bdr">BDR</option></select></label>
+          <label class="field">Operação<select class="select" id="oTipo"><option value="compra">Comprei</option><option value="venda">Vendi</option></select></label>
+          <label class="field">Data<input class="input" type="date" id="oData" required></label>
+          <label class="field">Quantidade<input class="input" type="number" id="oQtd" min="1" max="100000000" step="1" inputmode="numeric" required></label>
+          <label class="field">Preço de cada (R$)<input class="input" type="number" id="oPreco" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+          <label class="field">Taxas (R$, opcional)<input class="input" type="number" id="oTaxas" step="0.01" min="0" max="999999999.99" inputmode="decimal" placeholder="0,00"></label>
+          <label class="field">Corretora<input class="input" type="text" id="oInst" maxlength="60" placeholder="ex: XP, Rico, BTG" list="instList" autocomplete="off" required></label>
+          <button type="submit" class="btn btn-primary wide">Anotar</button>
+        </form>
+      </div>
+    </details>
+    <div class="section-title">O que tenho</div>
+    <p class="note" style="margin-top:0">Toque em "cotação" para informar o preço de hoje e ver quanto vale. O app não consulta a bolsa.</p>
+    <div class="card list-card" id="listAtivos"></div>
+    <div class="section-title">Rentabilidade com vendas e proventos</div>
+    <p class="note" style="margin-top:0">Valorização do que ainda tenho + lucro ou prejuízo das vendas + proventos recebidos, sobre tudo o que já comprei do ativo.</p>
+    <div id="rentAcoes"></div>
+    <div class="section-title">Histórico</div>
+    <div class="card list-card" id="listOperacoes"></div>
+  </section>
+
+  <!-- CRIPTO -->
+  <section class="panel" id="panel-cripto">
+    <details class="add-box" id="addCripto">
+      <summary class="btn btn-primary btn-block"><i data-icon="plus" data-size="16"></i> Anotar cripto</summary>
+      <div class="card">
+        <form class="form-grid" id="formCripto">
+          <label class="field">Moeda<select class="select" id="cMoeda"></select></label>
+          <label class="field" id="cNomeLabel" hidden>Nome da cripto<input class="input" type="text" id="cNome" maxlength="40" placeholder="ex: Pepe"></label>
+          <label class="field">Em<select class="select" id="cMoedaValor"><option value="BRL">reais (R$)</option><option value="USD">dólares (US$)</option></select></label>
+          <label class="field">Valor aplicado<input class="input" type="number" id="cValor" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+          <label class="field">Valor hoje (opcional)<input class="input" type="number" id="cAtual" step="0.01" min="0" max="999999999.99" inputmode="decimal"></label>
+          <label class="field">Data<input class="input" type="date" id="cData" required></label>
+          <label class="field">Exchange<select class="select" id="cCustodia"><option value="nacional">no Brasil</option><option value="exterior">no exterior</option></select></label>
+          <label class="field wide">Onde está<input class="input" type="text" id="cOnde" maxlength="60" placeholder="ex: Binance, Mercado Bitcoin" list="instList" autocomplete="off" required></label>
+          <button type="submit" class="btn btn-primary wide">Anotar</button>
+        </form>
+        <p class="note">Sem quantidade: anote quanto aplicou e atualize o valor de hoje quando quiser (o que a exchange mostra). Valores em US$ são convertidos pelo dólar do Banco Central.</p>
+      </div>
+    </details>
+    <div class="section-title">O que tenho</div>
+    <p class="note" style="margin-top:0" id="criptoHint"></p>
+    <div class="card list-card" id="listCriptoPos"></div>
+    <div class="section-title">Vendas</div>
+    <div class="card list-card" id="listCripto"></div>
+  </section>
+
+  <!-- OUTROS -->
+  <section class="panel" id="panel-outros">
+    <details class="add-box" id="addOutro">
+      <summary class="btn btn-primary btn-block"><i data-icon="plus" data-size="16"></i> Anotar previdência, fundo, poupança ou outro</summary>
+      <div class="card">
+        <form class="form-grid" id="formOutro">
+          <label class="field wide">Categoria<select class="select" id="xCat"><option value="previdencia">Previdência (PGBL/VGBL)</option><option value="fundo">Fundo de investimento</option><option value="conta">Poupança / conta remunerada</option><option value="outro">Outro</option></select></label>
+          <label class="field">Nome<input class="input" type="text" id="xNome" maxlength="80" placeholder="ex: VGBL, Caixinha"></label>
+          <label class="field">Banco ou corretora<input class="input" type="text" id="xInst" maxlength="60" list="instList" autocomplete="off" required></label>
+          <label class="field">Valor aplicado (R$)<input class="input" type="number" id="xValor" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+          <label class="field">Data<input class="input" type="date" id="xData" required></label>
+          <label class="field wide">Valor hoje (R$, opcional)<input class="input" type="number" id="xAtual" step="0.01" min="0.01" max="999999999.99" inputmode="decimal"></label>
+          <button type="submit" class="btn btn-primary wide">Anotar</button>
+        </form>
+        <p class="note">Aqui o valor de hoje é o que o banco mostra: atualize quando quiser em "atualizar".</p>
+      </div>
+    </details>
+    <div class="section-title">Investimentos</div>
+    <div class="card list-card" id="listOutros"></div>
+    <div class="section-title">Resgatados</div>
+    <div class="card list-card" id="listOutrosResg"></div>
+  </section>
+  <datalist id="tickerList"></datalist>
+  <datalist id="instList"></datalist>
+
+  <!-- METAS -->
+  <section class="panel" id="panel-metas">
+    <details class="add-box" id="addMeta">
+      <summary class="btn btn-primary btn-block"><i data-icon="plus" data-size="16"></i> Nova meta</summary>
+      <div class="card">
+        <form class="form-grid" id="formMeta">
+          <label class="field wide">Tipo<select class="select" id="mTipo"><option value="patrimonio">Patrimônio (chegar a um valor)</option><option value="objetivo">Objetivo com nome</option><option value="aporte">Aporte mensal</option></select></label>
+          <label class="field wide" id="mNomeLabel" hidden>Nome<input class="input" type="text" id="mNome" maxlength="60" placeholder="ex: Reserva de emergência"></label>
+          <label class="field" id="mValorLabel">Valor (R$)<input class="input" type="number" id="mValor" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+          <label class="field" id="mPrazoLabel">Até (opcional)<input class="input" type="date" id="mPrazo"></label>
+          <button type="submit" class="btn btn-primary wide">Criar meta</button>
+        </form>
+        <p class="note" id="mHint">Patrimônio: soma de tudo o que você anotou. Objetivo: você escolhe quais investimentos contam para ele. Aporte mensal: quanto quer investir por mês.</p>
+      </div>
+    </details>
+    <div id="listMetas"></div>
+  </section>
+
+  <!-- PLANEJAMENTO -->
+  <section class="panel" id="panel-planejamento">
+    <div class="card" style="margin-top:6px">
+      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <label class="field">Ano<input class="input" type="number" id="planAno" min="2000" max="2100" step="1" inputmode="numeric"></label>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnPlanMeta"><i data-icon="target" data-size="14"></i> Preencher com a meta de aporte</button>
+      </div>
+      <p class="note">Planeje quanto quer investir em cada mês. "Feito" é o que você anotou de aplicações e compras no mês.</p>
+    </div>
+    <div id="planResumo" style="margin-top:14px"></div>
+    <div class="section-title">Mês a mês</div>
+    <div class="card kv" id="planMeses"></div>
+  </section>
+
+  <!-- ACOMPANHAMENTO -->
+  <section class="panel" id="panel-acompanhamento">
+    <div class="seg seg-sm" id="acompPeriodo" role="group" aria-label="Período" style="margin-top:6px">
+      <button type="button" data-p="dia" aria-pressed="false">Diário</button>
+      <button type="button" data-p="mes" aria-pressed="true">Mensal</button>
+      <button type="button" data-p="ano" aria-pressed="false">Anual</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="chart-head"><span class="label" id="chartTitulo">Patrimônio x quanto apliquei</span></div>
+      <div id="acompGrafico" class="chart"></div>
+    </div>
+    <p class="note" id="acompHint"></p>
+    <div class="section-title">Quanto rendeu em cada período</div>
+    <div class="card kv" id="acompTabela"></div>
+  </section>
+
+  <!-- RELATÓRIOS -->
+  <section class="panel" id="panel-relatorios">
+    <div class="seg seg-sm" id="relTipo" role="group" aria-label="Tipo de relatório" style="margin-top:6px">
+      <button type="button" data-t="mes" aria-pressed="true">Mensal</button>
+      <button type="button" data-t="ano" aria-pressed="false">Anual</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="form-grid">
+        <label class="field wide" id="relMesLabel">Mês<input class="input" type="month" id="relMes"></label>
+        <label class="field wide" id="relAnoLabel" hidden>Ano<input class="input" type="number" id="relAno" min="2000" max="2100" step="1" inputmode="numeric"></label>
+      </div>
+    </div>
+    <div class="section-title">Resumo</div>
+    <div class="card kv total" id="relResumo"></div>
+    <div class="section-title">Por tipo de investimento</div>
+    <div class="card kv" id="relGrupos"></div>
+    <div class="section-title">Movimentações</div>
+    <div class="card list-card" id="relMov"></div>
+  </section>
+
+  <!-- PROVENTOS: tela própria aberta pelo menu ⋮ -->
+  <section class="panel screen" id="panel-proventos" aria-labelledby="provTitle">
+    <div class="screen-head">
+      <button type="button" class="btn btn-secondary btn-sm" data-back><i data-icon="arrow-left" data-size="16"></i> Voltar</button>
+      <h2 id="provTitle" tabindex="-1">Proventos</h2>
+    </div>
+    <p class="note">Proventos são o dinheiro que suas ações e FIIs pagam: dividendos, JCP e rendimentos mensais de FII. Anote cada pagamento quando cair na conta da corretora; o app soma por mês e por ativo. No JCP, use o valor líquido (já vem com 15% de IR descontado).</p>
+    <div class="card" style="margin-top:16px">
+      <form class="form-grid" id="formProvento">
+        <label class="field">Ativo<input class="input" type="text" id="pTicker" required maxlength="12" placeholder="ex: TAEE11" autocapitalize="characters" list="tickerList" autocomplete="off"></label>
+        <label class="field">Tipo<select class="select" id="pTipo"><option value="dividendo">Dividendo</option><option value="jcp">JCP (líquido)</option><option value="rendimento">Rendimento de FII</option><option value="outro">Outro</option></select></label>
+        <label class="field">Data do pagamento<input class="input" type="date" id="pData" required></label>
+        <label class="field">Valor recebido (R$)<input class="input" type="number" id="pValor" step="0.01" min="0.01" max="999999999.99" inputmode="decimal" required></label>
+        <button type="submit" class="btn btn-primary wide">Anotar</button>
+      </form>
+    </div>
+    <div class="section-title">Últimos 12 meses <span class="note num" id="provTotal"></span></div>
+    <div class="card"><div class="bars" id="proventosMeses"></div></div>
+    <div class="section-title">Por ativo</div>
+    <div class="card list-card" id="listProventosAtivo"></div>
+    <div class="section-title">Recebidos</div>
+    <div class="card list-card" id="listProventos"></div>
+  </section>
+
+  <!-- IMPOSTO DE RENDA: tela própria aberta pelo menu ⋮ -->
+  <section class="panel screen" id="panel-ir" aria-labelledby="irTitle">
+    <div class="screen-head">
+      <button type="button" class="btn btn-secondary btn-sm" data-back><i data-icon="arrow-left" data-size="16"></i> Voltar</button>
+      <h2 id="irTitle" tabindex="-1">Imposto de renda das vendas</h2>
+    </div>
+    <h3 class="ir-sec">Ações, FIIs, ETFs e BDRs</h3>
+    <p class="note">Calculado a partir das vendas anotadas na aba Ações. Ações: isentas se as vendas do mês somarem até R$ 20 mil; ações, ETFs e BDRs pagam 15% sobre o lucro; FIIs, 20%. Prejuízos abatem lucros dos meses seguintes. DARF código 6015 até o último dia útil do mês seguinte (feriados não considerados). Não desconta o IRRF de 0,005% nem separa day trade. Estimativa: confira com um contador.</p>
+    <div class="section-title">Prejuízo de antes do app (opcional)</div>
+    <div class="card">
+      <form class="form-grid" id="formPrejuizo">
+        <label class="field">Ações, ETFs e BDRs (R$)<input class="input" type="number" id="prejComum" step="0.01" min="0" max="999999999.99" inputmode="decimal"></label>
+        <label class="field">FIIs (R$)<input class="input" type="number" id="prejFii" step="0.01" min="0" max="999999999.99" inputmode="decimal"></label>
+        <button type="submit" class="btn btn-secondary wide">Salvar</button>
+      </form>
+    </div>
+    <div class="section-title">Meses com vendas</div>
+    <div id="irMeses"></div>
+    <h3 class="ir-sec">Cripto</h3>
+    <p class="note">Calculado a partir das vendas anotadas na aba Cripto, com as mesmas regras do app Cripto. <b>Exchange no Brasil</b>: isento se as vendas do mês somarem até R$ 35 mil; acima, 15% sobre o lucro (17,5% acima de R$ 5 mi, 20% acima de R$ 10 mi, 22,5% acima de R$ 30 mi), sem abater prejuízo do mês (postura conservadora); DARF código 4600 até o último dia útil do mês seguinte. <b>Exchange no exterior</b> (Lei 14.754/2023): 15% sobre o lucro do ano, pago na declaração anual, sem isenção; prejuízo abate anos seguintes. Carteira própria: confira com um contador. Venda de cripto por outra cripto ou stablecoin também conta como venda.</p>
+    <div class="section-title">Exchange no Brasil · por mês</div>
+    <div id="irCriptoMeses"></div>
+    <div class="section-title">Exchange no exterior · por ano</div>
+    <div id="irCriptoAnos"></div>
+  </section>
+
+  <!-- CALCULADORA: tela própria aberta pelo menu ⋮ -->
+  <section class="panel screen" id="panel-simulador" aria-labelledby="simTitle">
+    <div class="screen-head">
+      <button type="button" class="btn btn-secondary btn-sm" data-back><i data-icon="arrow-left" data-size="16"></i> Voltar</button>
+      <h2 id="simTitle" tabindex="-1">Calculadora de renda fixa</h2>
+    </div>
+    <div class="alert alert-info" style="margin-top:12px"><i data-icon="calculator" data-size="18"></i><div>Só uma conta: mostra quanto <b>as aplicações que você anotou</b> renderiam com o mesmo valor e prazo, pela taxa de cada uma. Nada é aplicado.</div></div>
+    <div class="card" style="margin-top:16px">
+      <form class="form-grid" id="formSim" novalidate>
+        <label class="field wide">Valor (R$)<input class="input" type="number" id="sValor" step="0.01" min="0.01" max="999999999.99" value="10000" inputmode="decimal"></label>
+        <label class="field">Prazo<input class="input" type="number" id="sPrazo" min="1" max="36500" step="1" value="2" inputmode="numeric"></label>
+        <label class="field">Unidade<select class="select" id="sUnidade"><option value="anos">anos</option><option value="meses">meses</option><option value="dias">dias corridos</option></select></label>
+      </form>
+    </div>
+    <div class="section-title">Índices (% ao ano)</div>
+    <div class="card">
+      <form class="form-grid" id="formParams" novalidate>
+        <label class="field">CDI<input class="input" type="number" id="parCdi" step="0.01" min="0" max="100" inputmode="decimal"></label>
+        <label class="field">Selic efetiva<input class="input" type="number" id="parSelic" step="0.01" min="0" max="100" inputmode="decimal"></label>
+        <label class="field">IPCA esperado 12m<input class="input" type="number" id="parIpca" step="0.01" min="-10" max="100" inputmode="decimal"></label>
+        <label class="field">TR<input class="input" type="number" id="parTr" step="0.01" min="0" max="50" inputmode="decimal"></label>
+        <label class="field">Custódia Tesouro<input class="input" type="number" id="parCustodia" step="0.01" min="0" max="5" inputmode="decimal"></label>
+      </form>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnBcb"><i data-icon="refresh" data-size="14"></i> Buscar no Banco Central</button>
+        <span class="note" style="margin:0" id="bcbStatus" aria-live="polite"></span>
+      </div>
+      <p class="note" id="paramsHint"></p>
+    </div>
+    <div class="section-title">Minhas aplicações no fim do prazo</div>
+    <div id="simResultado"></div>
+    <p class="note">Taxas futuras não são garantidas. Dias úteis estimados (dias corridos × 252/365). Custódia do Tesouro aproximada. LCI/LCA e poupança são isentas de IR para pessoa física.</p>
+  </section>
+
+  <footer class="util">
+    <div class="status" id="saveStatus">dados protegidos por criptografia</div>
+    <!-- Backup, certificado e bloqueio ficam em Configurações (menu ⋮), que aciona estes botões ocultos. -->
+    <div class="buttons" style="display:none">
+      <button id="btnExport"><i data-icon="download" data-size="14"></i> Exportar JSON</button>
+      <button id="btnImport"><i data-icon="upload" data-size="14"></i> Importar JSON</button>
+      <button id="btnReset"><i data-icon="trash" data-size="14"></i> Limpar tudo</button>
+      <button id="btnExportCert"><i data-icon="shield" data-size="14"></i> Exportar certificado</button>
+      <button id="btnImportCert"><i data-icon="shield-check" data-size="14"></i> Importar certificado</button>
+      <button id="btnBiometric"><i data-icon="settings" data-size="14"></i> Configurações</button>
+      <button id="btnRecover"><i data-icon="lock" data-size="14"></i> Bloquear / recuperar PIN</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json">
+    <input type="file" id="importCertFile" accept="application/json" style="display:none">
+  </footer>
+
+</div>
+
+
+<script src="stk-pkg-financ-icons.js"></script>
+<script src="stk-pkg-secure-vault.js"></script>
+<script src="stk-pkg-secure-ui.js"></script>
+<script src="invest-engine.js"></script>
+<script src="app.js"></script>
+<script src="apoio/stk-pkg-feedback.js"></script>
+<script src="apoio/stk-pkg-doacao.js" data-app="INVEST" data-flutuante="false"></script>
+
+</body>
+</html>
