@@ -1,0 +1,7 @@
+{
+  "name": "investimentos",
+  "private": true,
+  "description": "Investimentos: carteira (B3 e renda fixa), IR da renda variável e simulador de renda fixa (app web estático, dados só no aparelho).",
+  "scripts": { "test": "node --test test/" },
+  "license": "GPL-3.0-or-later"
+}

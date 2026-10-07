@@ -1,0 +1,90 @@
+/* Investimentos — só o que é próprio do app (v1.1 do kit cobre seção, menu, kv, alocação, gráfico e rolagem). Tokens e componentes vêm de financ-ui.css (design system FINANC). */
+:root { padding-top: env(safe-area-inset-top, 0px); }
+.page { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+.section-title .note { margin: 0; font-weight: 400; }
+.note b { color: var(--ink); }
+
+/* Resumo */
+.hero .delta { margin-bottom: 4px; }
+.hero-sub { font: 11.5px var(--mono); color: var(--ink-dim); }
+#avisoTopo, #darfAlerta { margin-bottom: 16px; }
+body.report-mode #avisoTopo, body.report-mode #resumoCard, body.report-mode #darfAlerta { display: none; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Alocação: .alloc-bar e .legend vêm do kit */
+.legend .num { font-size: 12.5px; }
+.legend .lg-val { color: var(--ink-dim); min-width: 7.5em; text-align: right; }
+
+/* Instituições e listas */
+.inst { padding: 4px 18px; margin-bottom: 10px; }
+.inst > summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; }
+.inst > summary::-webkit-details-marker { display: none; }
+.inst[open] > summary { border-bottom: 1px solid var(--line); }
+.inst .row-title { white-space: normal; }
+.inst-total { text-align: right; }
+.inst-sum { display: flex; justify-content: space-between; font-weight: 600; padding: 4px 4px 0; }
+.list-card { padding: 4px 18px; }
+.row-title .badge { margin-left: 6px; vertical-align: 2px; }
+.row-meta { line-height: 1.55; }
+.row-meta .pos, .row-amt .pos, .kv .pos, .note .pos { color: var(--up); }
+.row-meta .neg, .row-amt .neg, .kv .neg, .note .neg { color: var(--down); }
+.row.paid .row-title { color: var(--ink-dim); }
+.warn-txt { color: var(--warn); }
+
+/* Formulário "Anotar" recolhível */
+.add-box { margin: 18px 0 4px; }
+
+.ir-month { margin-bottom: 14px; }
+.ir-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 2px 8px; }
+.ir-sec { font-size: 17px; margin: 28px 0 4px; }
+
+/* Proventos: barras de 12 meses */
+.bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 130px; }
+.bars .empty-state { grid-column: 1 / -1; align-self: center; padding: 0; }
+.bar { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 4px; }
+.bar i { display: block; width: 100%; max-width: 22px; background: var(--up); border-radius: 4px 4px 0 0; }
+.bar span { font: 9.5px var(--mono); color: var(--ink-dim); }
+
+/* Telas do menu ⋮ */
+.screen-head { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 6px 0 4px; }
+.screen-head h2 { margin: 0; font-size: 22px; outline: none; }
+
+/* Diálogos do app (dentro do .vault-dialog do kit) */
+.pay-form { display: grid; gap: 12px; margin-top: 12px; }
+.pay-form .input { font-size: 15px; }
+
+@media (max-width: 400px) { .form-grid { grid-template-columns: 1fr; } .seg button { min-width: 0; padding: 10px 4px; font-size: 11.5px; } }
+
+/* Rodapé (status; os botões ficam ocultos e são acionados pelo menu ⋮) */
+footer.util { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); }
+footer.util .status { font: 11px var(--mono); color: var(--ink-dim); }
+#importFile, #importCertFile { display: none; }
+.btn.acc { color: var(--accent); }
+#simResultado > .empty-state, #irMeses > .empty-state, #irCriptoMeses > .empty-state, #irCriptoAnos > .empty-state, #rentAcoes > .empty-state { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+
+/* Metas */
+.meta-card { margin-bottom: 12px; }
+.meta-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.meta-card .progress { margin: 12px 0 8px; }
+.meses-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 10px; }
+.meses-12 span { height: 26px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; font: 9px var(--mono); color: var(--ink-dim); }
+.meses-12 span.ok { background: color-mix(in srgb, var(--up) 18%, transparent); border-color: color-mix(in srgb, var(--up) 40%, transparent); color: var(--up); }
+
+/* Planejamento */
+.plan-row { display: grid; grid-template-columns: 52px 1fr 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.plan-row:last-child { border-bottom: 0; }
+.plan-row .input { padding: 8px 10px; font-size: 13.5px; }
+.plan-row .feito { text-align: right; font: 13px var(--mono); }
+.plan-row.atual .mes { color: var(--accent); font-weight: 600; }
+.plan-head { font: 10.5px var(--mono); color: var(--ink-dim); text-transform: uppercase; letter-spacing: .04em; }
+
+/* Específicos do app */
+body.report-mode .section-bar { display: none; }
+.r-sub { display: block; font: 400 11px var(--mono); color: var(--ink-dim); margin-top: 2px; white-space: normal; }
+.chart { margin-top: 8px; }
+.stat .v { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#resumoCard .stat .v { font-size: 15px; }
+#planResumo .stat-grid { grid-template-columns: 1fr; gap: 6px; }
+#planResumo .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; }
+#planResumo .stat .v { margin-top: 0; overflow: visible; font-size: 15px; }
