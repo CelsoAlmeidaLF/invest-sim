@@ -75,10 +75,10 @@ Navegação pelo botão **Seções** (as abas ficam ocultas). O aviso "o app só
 
 - `src/invest-engine.js`: regras de cálculo (funções puras, UMD; roda no navegador e no Node).
 - `src/app.js`: interface e persistência (`UiEvents`, seções, gráfico, diálogos).
-- `src/financ-ui.css`: design system FINANC v1.1 (cópia de `stk-pkg-design-system/`; não editar aqui).
+- `src/financ-ui.css`: design system FINANC v1.1 (cópia de `PACOTES/stk-pkg-design-system/`; não editar aqui).
 - `src/index.css`: só o que é próprio do app.
-- `src/stk-pkg-*.js|css`: kit de segurança e ícones (cópias de `stk-pkg-security/`; não editar aqui).
-- `src/apoio/`: painel compartilhado (id `INVEST`).
+- `src/stk-pkg-*.js|css`: kit de segurança e ícones (cópias de `PACOTES/stk-pkg-security/`; não editar aqui).
+- `src/apoio/`: painel de apoio e log de erros (cópias de `PACOTES/stk-pkg-doacao/shared/`, id `INVEST`).
 - `test/`: testes com `node --test`, sem dependências.
 - Documentação: `.documents/specs/stk-app-invest-sim/` (requisitos, arquitetura, entidades) e
   `.documents/specs/global/SPEC_ENDPOINTS_GLOBAL_2026-10-06.md` (endpoints).
@@ -88,3 +88,13 @@ Navegação pelo botão **Seções** (as abas ficam ocultas). O aviso "o app só
 ```
 npm test        # node --test test/
 ```
+
+Situação em 08/10/2026 (v1.1.0): 94 testes passando, incluindo `apoio` (CSP e Firebase do painel) e `stk-pkg-erros` (limpeza do log; o Investimentos leva chave na URL, que também vira `***`).
+
+## Apoio, avaliação e log de erros
+
+- `src/apoio/` traz cópias de `PACOTES/stk-pkg-doacao/shared/` (não editar aqui), com id `INVEST`.
+- **Menu ⋮ → Apoiar · Avaliar · Sugerir:** doação (Pix e Bitcoin), nota de 1 a 5 e sugestão. Vai para o Firestore `systekna-feedback`, protegido por App Check.
+- **Configurações → Relatórios de erro** (`stk-pkg-erros.js`, primeiro script do `<head>`): guarda no aparelho os últimos erros. Valores, e-mails, textos e parâmetros de URL viram `***` antes de guardar. Dá para ver, copiar, enviar e limpar.
+- **Envio só com permissão:** com o **Modo testador** ligado (vale para todos os apps do aparelho), o app envia sozinho. Desligado, pergunta "Enviar relatório?" uma vez por sessão. O dono lê na aba **Erros** do painel de feedback.
+- Nenhum dado financeiro sai do aparelho. Só a avaliação, a sugestão e o relatório técnico de erro são enviados.
