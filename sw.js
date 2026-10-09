@@ -1,11 +1,11 @@
-const CACHE_NAME = 'investimentos-v1.4.0';
+const CACHE_NAME = 'investimentos-v1.5.0';
 const APP_SHELL = [
   './index.html',
   './financ-ui.css',
   './index.css',
   './invest-engine.js',
   './app.js',
-  './stk-pkg-secure-vault.js',
+  './stk-pkg-bip39-pt.js', './stk-pkg-secure-vault.js',
   './stk-pkg-secure-ui.js',
   './stk-pkg-secure-ui.css',
   './stk-pkg-financ-icons.js',

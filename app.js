@@ -784,7 +784,7 @@
     { icon: 'calculator', label: 'Calculadora de renda fixa', description: 'Só uma conta: compara rendimentos', onClick: function(){ openScreen('simulador'); } },
   ] });
   FinancSettings.addSection({ title: 'Dados e backup', rows: [
-    { icon: 'download', label: 'Exportar backup (JSON)', description: 'Arquivo criptografado com PIN próprio.', onClick: clickById('btnExport') },
+    { icon: 'download', label: 'Exportar backup (JSON)', description: 'Protegido pelas suas 12 palavras: abre em qualquer aparelho com elas.', onClick: clickById('btnExport') },
     { icon: 'upload', label: 'Importar backup (JSON)', description: 'Restaura um backup exportado.', onClick: clickById('btnImport') },
     { icon: 'shield', label: 'Exportar certificado', description: 'Cópia protegida; o mesmo certificado em todos os apps.', onClick: clickById('btnExportCert') },
     { icon: 'shield-check', label: 'Importar certificado', description: 'Usa o certificado de outro aparelho.', onClick: clickById('btnImportCert') },
@@ -1067,14 +1067,12 @@
       reader.onload = async function(ev){
         try {
           var payload = JSON.parse(ev.target.result);
-          if (!payload || payload.format !== 'financ-encrypted-v1') throw new Error('backup não criptografado');
-          var password = await window.askSecret('Senha do backup:', false, true);
-          if (!password) return;
-          var data = await FinancVault.unprotect(payload, password, 'invest-sim:backup');
+          var data = await window.importProtected(payload, 'invest-sim:backup');
+          if (data === null) return;
           if (!await askConfirm({ title: 'Substituir todos os dados?', text: 'Importar este arquivo vai substituir todos os dados atuais.', action: 'Importar', danger: true })) return;
           state = Engine.normalizeState(data); commit();
           document.getElementById('saveStatus').textContent = 'backup importado e salvo criptografado';
-        } catch (err) { showMessage('Backup inválido', 'Backup inválido, senha incorreta ou arquivo não criptografado.'); }
+        } catch (err) { showMessage('Backup inválido', (err && err.message) || 'Backup inválido.'); }
       };
       reader.readAsText(file); e.target.value = '';
     },
