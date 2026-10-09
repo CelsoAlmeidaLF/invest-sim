@@ -24,7 +24,7 @@ Navegação pelo botão **Seções** (as abas ficam ocultas). O aviso "o app só
   (12 meses cumpridos ou não). "Quanto por mês" = quanto falta ÷ meses, sem contar rendimento.
 - **Planejamento**: aportes planejados x feitos em cada mês e no ano; pode preencher com a meta de aporte.
 - **Proventos**, **Imposto de renda** e **Calculadora de renda fixa**: no menu Seções (grupo "Mais") e no menu ⋮.
-- Backup criptografado, certificado FINANC, painel Apoiar · Avaliar · Sugerir, offline (service worker).
+- Backup criptografado pelas 12 palavras (sem senha extra; abre em outro aparelho com as palavras), certificado FINANC, painel Apoiar · Avaliar · Sugerir, offline (service worker).
 
 ## Regras de cálculo (legislação vigente em out/2026; a MP 1.303/2025 caducou)
 
