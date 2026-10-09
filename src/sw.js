@@ -1,4 +1,4 @@
-const CACHE_NAME = 'investimentos-v1.3.1';
+const CACHE_NAME = 'investimentos-v1.3.2';
 const APP_SHELL = [
   './index.html',
   './financ-ui.css',
@@ -25,8 +25,13 @@ const APP_SHELL = [
   './fonts/space-grotesk-latin-ext.woff2',
   './fonts/space-grotesk-latin.woff2',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
+  './icons/favicon.ico',
+  './icons/favicon-32.png',
+  './icons/apple-touch-icon.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/maskable-192.png',
+  './icons/maskable-512.png',
 ];
 
 self.addEventListener('install', (event) => {
