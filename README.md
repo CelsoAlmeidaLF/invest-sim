@@ -75,9 +75,9 @@ Navegação pelo botão **Seções** (as abas ficam ocultas). O aviso "o app só
 
 - `src/invest-engine.js`: regras de cálculo (funções puras, UMD; roda no navegador e no Node).
 - `src/app.js`: interface e persistência (`UiEvents`, seções, gráfico, diálogos).
-- `src/financ-ui.css`: design system FINANC v1.1 (cópia de `stk-pkg-design-system/`; não editar aqui).
+- `src/financ-ui.css`: design system FINANC v1.1 (cópia de `stk-pkt-design-system/`; não editar aqui).
 - `src/index.css`: só o que é próprio do app.
-- `src/stk-pkg-*.js|css`: kit de segurança e ícones (cópias de `stk-pkg-security/`; não editar aqui).
+- `src/stk-pkt-*.js|css`: kit de segurança e ícones (cópias de `stk-pkt-security/`; não editar aqui).
 - `src/apoio/`: painel compartilhado (id `INVEST`).
 - `test/`: testes com `node --test`, sem dependências.
 - Documentação: `.documents/specs/stk-app-invest-sim/` (requisitos, arquitetura, entidades) e
