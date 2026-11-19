@@ -10,19 +10,28 @@
   function fmt(cents){ return Engine.fmtBRL(cents); }
   function dateBR(iso){ return Engine.dateBR(iso); }
   function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  /** Valores calculados em execução (largura de barra, altura de coluna) entram como custom property via CSSOM; a regra visual fica no index.css. */
+  function paintPct(root){ root.querySelectorAll('[data-pct]').forEach(function(el){ el.style.setProperty('--pct', el.getAttribute('data-pct') + '%'); }); }
   function qtdFmt(n){ return Number(n).toLocaleString('pt-BR'); }
   function signCls(v){ return v > 0 ? 'pos' : v < 0 ? 'neg' : ''; }
   function signed(v){ return (v > 0 ? '+\u00a0' : v < 0 ? '−\u00a0' : '') + fmt(Math.abs(v)); } // sinal colado ao valor (não quebra linha)
 
   var state = Engine.freshState();
 
+  // Dados guardados que não abriram: o PIN estava certo, o conteúdo é que não pôde ser lido.
+  // Enquanto true, nada é gravado (não sobrescreve o que ficou no aparelho) e a leitura não conta como PIN errado.
+  var dadosIlegiveis = false;
+  var dadosBrutos = null;
   async function load(){
-    var raw = localStorage.getItem(STATE_KEY);
-    state = Engine.normalizeState(raw ? JSON.parse(raw) : null);
-    if (!raw) await save();
+    var raw = null, aberto;
+    try { raw = localStorage.getItem(STATE_KEY); aberto = Engine.abrirEstadoGuardado(raw); }
+    catch (err) { console.error('Investimentos: falha ao ler os dados guardados.'); aberto = { ok: false, motivo: 'leitura' }; }
+    if (aberto.ok) { state = aberto.state; if (aberto.vazio) await save(); }
+    else { console.error('Investimentos: dados guardados ilegíveis (' + aberto.motivo + ').'); dadosIlegiveis = true; dadosBrutos = raw; state = Engine.freshState(); }
     document.body.classList.remove('locked');
   }
   async function save(){
+    if (dadosIlegiveis) { document.getElementById('saveStatus').textContent = 'nada foi gravado: dados do aparelho não lidos'; avisarDadosIlegiveis(); return; }
     localStorage.setItem(STATE_KEY, JSON.stringify(state));
     await localStorage.flush();
     document.getElementById('saveStatus').textContent = 'salvo e criptografado neste navegador';
@@ -63,6 +72,27 @@
       var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'vault-dialog-primary'; ok.textContent = 'Entendi'; ok.onclick = function(){ close(true); };
       actions.append(ok);
       dialog.append.apply(dialog, dialogHead(title, text, danger === false ? 'info' : 'alert', danger !== false).concat([actions]));
+    });
+  }
+  /** Tela de recuperação quando os dados do aparelho não abrem. Não apaga nem grava nada. */
+  var avisoIlegivelAberto = false;
+  function avisarDadosIlegiveis(){
+    if (avisoIlegivelAberto) return;
+    avisoIlegivelAberto = true;
+    dialogBox(function(dialog, close){
+      var actions = document.createElement('div'); actions.className = 'vault-dialog-actions';
+      var fechar = document.createElement('button'); fechar.type = 'button'; fechar.textContent = 'Fechar'; fechar.onclick = function(){ close('fechar'); };
+      var exp = document.createElement('button'); exp.type = 'button'; exp.textContent = 'Exportar o que houver'; exp.onclick = function(){ close('exportar'); };
+      var rest = document.createElement('button'); rest.type = 'button'; rest.className = 'vault-dialog-primary'; rest.textContent = 'Restaurar backup'; rest.onclick = function(){ close('restaurar'); };
+      actions.append(fechar, exp, rest);
+      dialog.append.apply(dialog, dialogHead('Não conseguimos ler os dados', 'Seu PIN está certo, mas não conseguimos ler os dados deste aparelho. Restaure um backup ou exporte o que houver. Nada foi apagado nem alterado.', 'alert', true).concat([actions]));
+    }).then(async function(escolha){
+      avisoIlegivelAberto = false;
+      if (escolha === 'restaurar') document.getElementById('btnImport').click();
+      else if (escolha === 'exportar') {
+        try { await window.exportProtected({ dadosNaoLidos: dadosBrutos }, 'invest-sim:backup', 'investimentos-dados-nao-lidos-' + hoje() + '.secure.json'); }
+        catch (_) { showMessage('Exportação falhou', 'Não foi possível exportar o que havia no aparelho.'); }
+      }
     });
   }
   /** Modal com valor (R$) e data. Resolve {valor (centavos), data} ou null. */
@@ -108,7 +138,7 @@
         inp.addEventListener('input', function(){ inp.setCustomValidity(''); });
         lbl.append(inp); form.append(lbl);
       });
-      if (o.note) { var n = document.createElement('p'); n.className = 'note'; n.style.margin = '0'; n.textContent = o.note; form.append(n); }
+      if (o.note) { var n = document.createElement('p'); n.className = 'note note-flush'; n.textContent = o.note; form.append(n); }
       var actions = document.createElement('div'); actions.className = 'vault-dialog-actions';
       var no = document.createElement('button'); no.type = 'button'; no.textContent = 'Cancelar'; no.onclick = function(){ close(null); };
       var yes = document.createElement('button'); yes.type = 'submit'; yes.className = 'vault-dialog-primary'; yes.textContent = o.action || 'Salvar';
@@ -216,8 +246,8 @@
       return '<button type="button" class="' + cls + '" data-action="' + a.action + '">' + a.label + '</button>';
     }).join('');
     return '<div class="row' + (opts.paid ? ' paid' : '') + '" data-id="' + escapeHtml(opts.id) + '">' +
-      '<div class="row-main"><div style="min-width:0"><div class="row-title">' + opts.title + '</div><div class="row-meta">' + opts.meta + '</div>' +
-      (actionsHtml ? '<div class="row-actions" style="justify-content:flex-start">' + actionsHtml + '</div>' : '') + '</div></div>' +
+      '<div class="row-main"><div class="min-w-0"><div class="row-title">' + opts.title + '</div><div class="row-meta">' + opts.meta + '</div>' +
+      (actionsHtml ? '<div class="row-actions row-actions-start">' + actionsHtml + '</div>' : '') + '</div></div>' +
       '<div class="row-amt ' + (opts.amtClass || '') + '">' + opts.amt + '</div>' +
     '</div>';
   }
@@ -264,17 +294,18 @@
   // ---------- carteira ----------
   var ALLOC_N = 10;
   function itemInst(title, meta, valor, sub, subCls){
-    return '<div class="row"><div class="row-main"><div style="min-width:0"><div class="row-title">' + title + '</div><div class="row-meta">' + meta + '</div></div></div>' +
+    return '<div class="row"><div class="row-main"><div class="min-w-0"><div class="row-title">' + title + '</div><div class="row-meta">' + meta + '</div></div></div>' +
       '<div class="row-amt">' + fmt(valor) + (sub ? '<small class="' + (subCls || '') + '">' + sub + '</small>' : '') + '</div></div>';
   }
   function renderCarteira(c){
     var aloc = document.getElementById('alocacao');
     aloc.innerHTML = c.alocacao.length ? '<div class="alloc-bar" role="img" aria-label="' + escapeHtml(c.alocacao.map(function(a){ return a.nome + ' ' + Engine.fmtPct(a.pct, 1); }).join(', ')) + '">' +
-      c.alocacao.map(function(a, i){ return '<span style="width:' + a.pct.toFixed(2) + '%;background:var(--c-' + (i % ALLOC_N + 1) + ')"></span>'; }).join('') + '</div>' +
+      c.alocacao.map(function(a, i){ return '<span class="sw-' + (i % ALLOC_N + 1) + '" data-pct="' + a.pct.toFixed(2) + '"></span>'; }).join('') + '</div>' +
       '<div class="legend">' + c.alocacao.map(function(a, i){
-        return '<div class="lg"><span class="dot" style="background:var(--c-' + (i % ALLOC_N + 1) + ')"></span><span>' + escapeHtml(a.nome) + '</span><span class="num">' + Engine.fmtPct(a.pct, 1) + '</span><span class="num lg-val">' + fmt(a.valor) + '</span></div>';
+        return '<div class="lg"><span class="dot sw-' + (i % ALLOC_N + 1) + '"></span><span>' + escapeHtml(a.nome) + '</span><span class="num">' + Engine.fmtPct(a.pct, 1) + '</span><span class="num lg-val">' + fmt(a.valor) + '</span></div>';
       }).join('') + '</div>'
       : empty('Nada anotado ainda. Use as abas Renda fixa, Ações, Cripto e Outros.', 'database');
+    paintPct(aloc);
 
     document.getElementById('listInstituicoes').innerHTML = c.instituicoes.length ? c.instituicoes.map(function(g){
       var itens = g.rendaFixa.map(function(x){
@@ -293,7 +324,7 @@
       if (g.valorRV) sub.push('ações ' + fmt(g.valorRV));
       if (g.valorCripto) sub.push('cripto ' + fmt(g.valorCripto));
       if (g.valorOutros) sub.push('outros ' + fmt(g.valorOutros));
-      return '<details class="card inst"><summary><div style="min-width:0"><div class="row-title">' + escapeHtml(g.nome) + '</div><div class="row-meta">' + sub.join(' · ') + '</div></div>' +
+      return '<details class="card inst"><summary><div class="min-w-0"><div class="row-title">' + escapeHtml(g.nome) + '</div><div class="row-meta">' + sub.join(' · ') + '</div></div>' +
         '<div class="row-amt inst-total">' + fmt(g.total) + '<small>' + Engine.fmtPct(c.total ? g.total / c.total * 100 : 0, 1) + '</small></div></summary>' + itens + '</details>';
     }).join('') + '<div class="inst-sum"><span>Total</span><span class="num">' + fmt(c.total) + '</span></div>'
       : '<div class="card">' + empty('Os bancos e corretoras aparecem aqui quando você anotar algo.', 'database') + '</div>';
@@ -346,8 +377,9 @@
     document.getElementById('provTotal').textContent = fmt(r.ult12) + (r.ult12 ? ' (média ' + fmt(r.mediaMensal12) + '/mês)' : '');
     document.getElementById('proventosMeses').innerHTML = r.ult12 ? r.meses.map(function(m){
       var h = Math.round(m.valor / max * 100);
-      return '<div class="bar" title="' + Engine.monthBR(m.mes) + ': ' + fmt(m.valor) + '"><i style="height:' + (m.valor ? Math.max(3, h) : 0) + '%"></i><span>' + m.mes.slice(5) + '</span></div>';
+      return '<div class="bar" title="' + Engine.monthBR(m.mes) + ': ' + fmt(m.valor) + '"><i data-pct="' + (m.valor ? Math.max(3, h) : 0) + '"></i><span>' + m.mes.slice(5) + '</span></div>';
     }).join('') : empty('Nenhum provento nos últimos 12 meses.');
+    paintPct(document.getElementById('proventosMeses'));
     document.getElementById('listProventosAtivo').innerHTML = r.porTicker.length ? r.porTicker.map(function(p){
       return rowHtml({ id: p.ticker, title: escapeHtml(p.ticker), meta: r.total ? Engine.fmtPct(p.valor / r.total * 100, 1) + ' do total recebido' : '', amt: fmt(p.valor), amtClass: 'pos' });
     }).join('') : empty('Nenhum provento lançado.');
@@ -468,7 +500,7 @@
       cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
       tip.innerHTML = '<b>' + rotuloPonto(p) + '</b><br>Patrimônio ' + fmt(p.patrimonio) + '<br>Apliquei ' + fmt(p.aplicado) + '<br>Ganho ' + signed(p.ganho) +
         (p.rendeu !== null ? '<br>Rendeu no período ' + signed(p.rendeu) : '');
-      tip.style.left = (x(i) / W * 100) + '%'; tip.style.top = (y(p.patrimonio) / H * r.height) + 'px'; tip.hidden = false;
+      tip.style.setProperty('--tip-x', (x(i) / W * 100) + '%'); tip.style.setProperty('--tip-y', (y(p.patrimonio) / H * r.height) + 'px'); tip.hidden = false;
     };
     var sair = function(){ tip.hidden = true; cross.setAttribute('visibility', 'hidden'); };
     var hit = document.getElementById('gHit');
@@ -532,11 +564,12 @@
       }
       var acts = (m.tipo === 'objetivo' ? '<button type="button" class="btn btn-secondary btn-sm acc" data-meta="' + m.id + '" data-acao="ligar">investimentos</button>' : '') +
         '<button type="button" class="btn btn-danger btn-sm" data-meta="' + m.id + '" data-acao="del">excluir</button>';
-      return '<div class="card meta-card"><div class="meta-top"><div><div class="row-title" style="white-space:normal">' + escapeHtml(m.nome) + ' <span class="badge badge-neutral">' + Engine.TIPOS_META[m.tipo] + '</span></div></div>' +
+      return '<div class="card meta-card"><div class="meta-top"><div><div class="row-title row-title-wrap">' + escapeHtml(m.nome) + ' <span class="badge badge-neutral">' + Engine.TIPOS_META[m.tipo] + '</span></div></div>' +
         '<div class="row-amt">' + Engine.fmtPct(st.pct, 0) + '</div></div>' +
-        '<div class="progress' + (st.vencida ? ' danger' : '') + '"><span style="width:' + pct.toFixed(1) + '%"></span></div>' + corpo +
-        '<div class="row-actions" style="justify-content:flex-start;margin-top:10px">' + acts + '</div></div>';
+        '<div class="progress' + (st.vencida ? ' danger' : '') + '"><span data-pct="' + pct.toFixed(1) + '"></span></div>' + corpo +
+        '<div class="row-actions row-actions-start">' + acts + '</div></div>';
     }).join('') : '<div class="card">' + empty('Crie sua primeira meta: patrimônio, um objetivo com nome ou quanto investir por mês.', 'target') + '</div>';
+    paintPct(document.getElementById('listMetas'));
     document.getElementById('addMeta').open = !state.metas.length;
   }
   /** Lista de investimentos para ligar a um objetivo. */
@@ -547,11 +580,11 @@
       .concat(c.ativos.map(function(a){ return { tipo: 'acao', id: a.ticker, nome: a.ticker, valor: a.valor }; }));
     var marcado = function(o){ return meta.vinculos.some(function(v){ return v.tipo === o.tipo && v.id === o.id; }); };
     return dialogBox(function(dialog, close){
-      var box = document.createElement('div'); box.className = 'stack'; box.style.marginTop = '12px'; box.style.maxHeight = '50vh'; box.style.overflow = 'auto';
+      var box = document.createElement('div'); box.className = 'stack pick-list';
       if (!opcoes.length) { var p = document.createElement('p'); p.className = 'note'; p.textContent = 'Anote investimentos primeiro.'; box.append(p); }
       opcoes.forEach(function(o, i){
         var l = document.createElement('label'); l.className = 'check';
-        l.innerHTML = '<input type="checkbox" data-i="' + i + '"' + (marcado(o) ? ' checked' : '') + '> <span style="flex:1">' + escapeHtml(o.nome) + '</span><span class="num">' + fmt(o.valor) + '</span>';
+        l.innerHTML = '<input type="checkbox" data-i="' + i + '"' + (marcado(o) ? ' checked' : '') + '> <span class="grow">' + escapeHtml(o.nome) + '</span><span class="num">' + fmt(o.valor) + '</span>';
         box.append(l);
       });
       var actions = document.createElement('div'); actions.className = 'vault-dialog-actions';
@@ -572,9 +605,10 @@
       '<div class="stat"><div class="k">planejado ' + ano + '</div><div class="v">' + fmt(p.planejado) + '</div></div>' +
       '<div class="stat ' + (p.planejado && p.feito >= p.planejado ? 'pos' : '') + '"><div class="k">feito</div><div class="v">' + fmt(p.feito) + '</div></div>' +
       '<div class="stat ' + signCls(p.diferenca) + '"><div class="k">diferença</div><div class="v">' + signed(p.diferenca) + '</div></div></div>' +
-      (p.pct !== null ? '<div class="progress" style="margin-top:12px"><span style="width:' + Math.min(100, p.pct).toFixed(1) + '%"></span></div><p class="note" style="margin-top:6px">' + Engine.fmtPct(p.pct, 0) + ' do planejado no ano</p>' : '');
+      (p.pct !== null ? '<div class="progress mt-12"><span data-pct="' + Math.min(100, p.pct).toFixed(1) + '"></span></div><p class="note mt-6">' + Engine.fmtPct(p.pct, 0) + ' do planejado no ano</p>' : '');
+    paintPct(document.getElementById('planResumo'));
     var nomes = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    document.getElementById('planMeses').innerHTML = '<div class="plan-row plan-head"><span>mês</span><span>planejado</span><span style="text-align:right">feito</span></div>' + p.meses.map(function(m, i){
+    document.getElementById('planMeses').innerHTML = '<div class="plan-row plan-head"><span>mês</span><span>planejado</span><span class="txt-end">feito</span></div>' + p.meses.map(function(m, i){
       return '<div class="plan-row' + (m.atual ? ' atual' : '') + '"><span class="mes">' + nomes[i] + '</span>' +
         '<input class="input" type="number" step="0.01" min="0" max="999999999.99" inputmode="decimal" data-plan="' + m.mes.slice(5) + '" value="' + (m.planejado ? Engine.centsToInput(m.planejado) : '') + '" placeholder="0,00" aria-label="Planejado em ' + nomes[i] + '">' +
         '<span class="feito"><span class="' + (m.planejado && (m.passado || m.atual) ? (m.feito >= m.planejado ? 'pos' : 'neg') : '') + '">' + fmt(m.feito) + '</span>' +
@@ -701,10 +735,10 @@
         if (r.custodia) desc.push('custódia ' + fmt(r.custodia));
         if (r.ir) desc.push('IR ' + fmt(r.ir));
         if (r.isento) desc.push('isento de IR');
-        return '<div class="card" style="margin-bottom:10px"><div class="row" style="padding:0;border:0;align-items:flex-start">' +
-          '<div style="min-width:0"><div class="row-title" style="white-space:normal">' + escapeHtml(r.nome) + '</div><div class="row-meta">' + Engine.TIPOS_RF[x.tipo] + ' · ' + taxaRF(x) + '</div></div>' +
+        return '<div class="card sim-card"><div class="row row-flush">' +
+          '<div class="min-w-0"><div class="row-title row-title-wrap">' + escapeHtml(r.nome) + '</div><div class="row-meta">' + Engine.TIPOS_RF[x.tipo] + ' · ' + taxaRF(x) + '</div></div>' +
           '<div class="row-amt">' + fmt(r.liquido) + '<small>líquido</small></div></div>' +
-          '<div class="row-meta" style="margin-top:8px">bruto ' + fmt(r.bruto) + (desc.length ? ' · ' + desc.join(' · ') : '') + '</div>' +
+          '<div class="row-meta row-meta-top">bruto ' + fmt(r.bruto) + (desc.length ? ' · ' + desc.join(' · ') : '') + '</div>' +
           '<div class="row-meta">ganho líquido <b class="' + signCls(r.ganhoLiquido) + '">' + signed(r.ganhoLiquido) + '</b> · ' + Engine.fmtPct(r.rentLiqPct) + ' no período · ' + Engine.fmtPct(r.rentLiqAA) + ' a.a.' +
           (r.pctCDILiquido !== null ? ' · ' + Engine.fmtPct(r.pctCDILiquido, 1) + ' do CDI líquido' : '') + '</div></div>';
       }).join('') + nota;
@@ -1070,7 +1104,7 @@
           var data = await window.importProtected(payload, 'invest-sim:backup');
           if (data === null) return;
           if (!await askConfirm({ title: 'Substituir todos os dados?', text: 'Importar este arquivo vai substituir todos os dados atuais.', action: 'Importar', danger: true })) return;
-          state = Engine.normalizeState(data); commit();
+          state = Engine.normalizeState(data); dadosIlegiveis = false; dadosBrutos = null; commit();
           document.getElementById('saveStatus').textContent = 'backup importado e salvo criptografado';
         } catch (err) { showMessage('Backup inválido', (err && err.message) || 'Backup inválido.'); }
       };
@@ -1079,6 +1113,7 @@
     btnRecover_click: window.lockVault,
     btnBiometric_click: () => window.vaultSettings(),
     btnReset_click: async function(){
+      if (dadosIlegiveis) { avisarDadosIlegiveis(); return; }
       if (await askConfirm({ title: 'Apagar tudo?', text: 'Isso vai apagar TODAS as operações, proventos e aplicações deste navegador. Tem certeza?', action: 'Apagar tudo', danger: true })) {
         state = Engine.freshState(); commit(); fillParams();
       }
@@ -1166,4 +1201,5 @@
   renderAll();
   mostrarAviso();
   atualizarSeries();
+  if (dadosIlegiveis) avisarDadosIlegiveis();
 })().catch(() => window.lockVault());

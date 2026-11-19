@@ -161,6 +161,18 @@
   function defaultOfertas() {
     return [];
   }
+  /**
+   * Abre o texto guardado no aparelho sem lançar erro. Distingue "nada guardado" (primeiro uso) de "guardado mas ilegível":
+   * no segundo caso quem chama NÃO pode gravar por cima nem tratar como PIN errado.
+   * Devolve { ok: true, vazio, state } ou { ok: false, motivo: 'json' | 'formato' }.
+   */
+  function abrirEstadoGuardado(raw) {
+    if (raw === null || raw === undefined || raw === '') return { ok: true, vazio: true, state: freshState() };
+    let dados;
+    try { dados = JSON.parse(raw); } catch (_) { return { ok: false, motivo: 'json' }; }
+    if (!dados || typeof dados !== 'object' || Array.isArray(dados)) return { ok: false, motivo: 'formato' };
+    return { ok: true, vazio: false, state: normalizeState(dados) };
+  }
   function normalizeState(raw) {
     const s = freshState();
     if (!raw || typeof raw !== 'object') return s;
@@ -1311,7 +1323,7 @@
     SCHEMA_VERSION, MAX_CENTS, MAX_QTD, ISENCAO_ACOES, DARF_MINIMO, CLASSES, TIPOS_PROVENTO, TIPOS_RF, PRODUTOS, IOF_TABELA,
     hojeISO, isValidISO, monthKey, addMonthKey, diasEntre, ultimoDiaUtil, dateBR, monthBR,
     parseCents, fmtBRL, centsToInput, fmtPct, mulDiv, uid, normTicker,
-    freshState, normalizeState, defaultParams, defaultOfertas,
+    freshState, normalizeState, abrirEstadoGuardado, defaultParams, defaultOfertas,
     MOEDAS, CATEGORIAS_OUTROS, SERIE_DOLAR, dolarEm, emReais, addCripto, atualizarCripto, venderCripto, removeCripto, criptoResumo, vendasCripto, setRentabilidadeAtivo,
     apuracaoCripto, darfsCriptoPendentes, irCriptoFaixas, CRIPTO_ISENCAO, rentabilidadeAcoes,
     informarJurosRF, limparJurosRF, TIPOS_META, registrarHistorico, acompanhamento, movimentos, aportesPorMes, relatorio,

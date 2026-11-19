@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="vault-locked" data-vault-version="1.5.5" data-vault-app="invest-sim" data-vault-name="Investimentos">
+<html lang="pt-BR" class="vault-locked" data-vault-version="1.6.0" data-vault-app="invest-sim" data-vault-name="Investimentos">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://www.google.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://firestore.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com https://api.bcb.gov.br https://olinda.bcb.gov.br; img-src 'self' data:; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://api.bcb.gov.br https://olinda.bcb.gov.br; img-src 'self' data:; frame-src https://systekna-ponte.web.app; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'">
 <meta name="referrer" content="no-referrer">
 <title>Investimentos</title>
 <link rel="manifest" href="manifest.json">
@@ -35,7 +35,7 @@
     </div>
   </header>
 
-  <div class="alert alert-info" id="avisoTopo" hidden><i data-icon="info" data-size="18"></i><div style="flex:1">Aqui você só <b>anota</b> o que já investiu em bancos e corretoras. O app não compra, não vende e não movimenta dinheiro.</div><button type="button" class="btn btn-icon alert-close" id="btnAvisoFechar" aria-label="Fechar aviso"><i data-icon="x" data-size="16"></i></button></div>
+  <div class="alert alert-info" id="avisoTopo" hidden><i data-icon="info" data-size="18"></i><div class="alert-body">Aqui você só <b>anota</b> o que já investiu em bancos e corretoras. O app não compra, não vende e não movimenta dinheiro.</div><button type="button" class="btn btn-icon alert-close" id="btnAvisoFechar" aria-label="Fechar aviso"><i data-icon="x" data-size="16"></i></button></div>
 
   <div class="card card-lg" id="resumoCard">
     <div class="hero">
@@ -44,7 +44,7 @@
       <div id="sumDelta"></div>
       <div class="hero-sub" id="sumTotalSub"></div>
     </div>
-    <div class="stat-grid" style="margin-top:14px">
+    <div class="stat-grid mt-14">
       <div class="stat" id="statGanho"><div class="k">ganho</div><div class="v" id="sumGanho">R$ 0,00</div><div class="hero-sub" id="sumGanhoSub"></div></div>
       <div class="stat" id="statJuros"><div class="k">juros renda fixa</div><div class="v" id="sumJuros">R$ 0,00</div><div class="hero-sub" id="sumJurosSub"></div></div>
     </div>
@@ -62,9 +62,9 @@
 
   <!-- CARTEIRA -->
   <section class="panel active" id="panel-resumo">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">
+    <div class="cluster mt-6">
       <button type="button" class="btn btn-secondary btn-sm" id="btnAtualizar"><i data-icon="refresh" data-size="14"></i> Atualizar juros e dólar</button>
-      <span class="note" style="margin:0" id="atualizarStatus" aria-live="polite"></span>
+      <span class="note note-flush" id="atualizarStatus" aria-live="polite"></span>
     </div>
     <div class="section-title">Por tipo</div>
     <div class="card" id="alocacao"></div>
@@ -117,10 +117,10 @@
       </div>
     </details>
     <div class="section-title">O que tenho</div>
-    <p class="note" style="margin-top:0">Toque em "cotação" para informar o preço de hoje e ver quanto vale. O app não consulta a bolsa.</p>
+    <p class="note mt-0">Toque em "cotação" para informar o preço de hoje e ver quanto vale. O app não consulta a bolsa.</p>
     <div class="card list-card" id="listAtivos"></div>
     <div class="section-title">Rentabilidade com vendas e proventos</div>
-    <p class="note" style="margin-top:0">Valorização do que ainda tenho + lucro ou prejuízo das vendas + proventos recebidos, sobre tudo o que já comprei do ativo.</p>
+    <p class="note mt-0">Valorização do que ainda tenho + lucro ou prejuízo das vendas + proventos recebidos, sobre tudo o que já comprei do ativo.</p>
     <div id="rentAcoes"></div>
     <div class="section-title">Histórico</div>
     <div class="card list-card" id="listOperacoes"></div>
@@ -146,7 +146,7 @@
       </div>
     </details>
     <div class="section-title">O que tenho</div>
-    <p class="note" style="margin-top:0" id="criptoHint"></p>
+    <p class="note mt-0" id="criptoHint"></p>
     <div class="card list-card" id="listCriptoPos"></div>
     <div class="section-title">Vendas</div>
     <div class="card list-card" id="listCripto"></div>
@@ -197,26 +197,26 @@
 
   <!-- PLANEJAMENTO -->
   <section class="panel" id="panel-planejamento">
-    <div class="card" style="margin-top:6px">
-      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+    <div class="card mt-6">
+      <div class="cluster cluster-end">
         <label class="field">Ano<input class="input" type="number" id="planAno" min="2000" max="2100" step="1" inputmode="numeric"></label>
         <button type="button" class="btn btn-secondary btn-sm" id="btnPlanMeta"><i data-icon="target" data-size="14"></i> Preencher com a meta de aporte</button>
       </div>
       <p class="note">Planeje quanto quer investir em cada mês. "Feito" é o que você anotou de aplicações e compras no mês.</p>
     </div>
-    <div id="planResumo" style="margin-top:14px"></div>
+    <div id="planResumo" class="mt-14"></div>
     <div class="section-title">Mês a mês</div>
     <div class="card kv" id="planMeses"></div>
   </section>
 
   <!-- ACOMPANHAMENTO -->
   <section class="panel" id="panel-acompanhamento">
-    <div class="seg seg-sm" id="acompPeriodo" role="group" aria-label="Período" style="margin-top:6px">
+    <div class="seg seg-sm mt-6" id="acompPeriodo" role="group" aria-label="Período">
       <button type="button" data-p="dia" aria-pressed="false">Diário</button>
       <button type="button" data-p="mes" aria-pressed="true">Mensal</button>
       <button type="button" data-p="ano" aria-pressed="false">Anual</button>
     </div>
-    <div class="card" style="margin-top:12px">
+    <div class="card mt-12">
       <div class="chart-head"><span class="label" id="chartTitulo">Patrimônio x quanto apliquei</span></div>
       <div id="acompGrafico" class="chart"></div>
     </div>
@@ -227,11 +227,11 @@
 
   <!-- RELATÓRIOS -->
   <section class="panel" id="panel-relatorios">
-    <div class="seg seg-sm" id="relTipo" role="group" aria-label="Tipo de relatório" style="margin-top:6px">
+    <div class="seg seg-sm mt-6" id="relTipo" role="group" aria-label="Tipo de relatório">
       <button type="button" data-t="mes" aria-pressed="true">Mensal</button>
       <button type="button" data-t="ano" aria-pressed="false">Anual</button>
     </div>
-    <div class="card" style="margin-top:12px">
+    <div class="card mt-12">
       <div class="form-grid">
         <label class="field wide" id="relMesLabel">Mês<input class="input" type="month" id="relMes"></label>
         <label class="field wide" id="relAnoLabel" hidden>Ano<input class="input" type="number" id="relAno" min="2000" max="2100" step="1" inputmode="numeric"></label>
@@ -252,7 +252,7 @@
       <h2 id="provTitle" tabindex="-1">Proventos</h2>
     </div>
     <p class="note">Proventos são o dinheiro que suas ações e FIIs pagam: dividendos, JCP e rendimentos mensais de FII. Anote cada pagamento quando cair na conta da corretora; o app soma por mês e por ativo. No JCP, use o valor líquido (já vem com 15% de IR descontado).</p>
-    <div class="card" style="margin-top:16px">
+    <div class="card mt-16">
       <form class="form-grid" id="formProvento">
         <label class="field">Ativo<input class="input" type="text" id="pTicker" required maxlength="12" placeholder="ex: TAEE11" autocapitalize="characters" list="tickerList" autocomplete="off"></label>
         <label class="field">Tipo<select class="select" id="pTipo"><option value="dividendo">Dividendo</option><option value="jcp">JCP (líquido)</option><option value="rendimento">Rendimento de FII</option><option value="outro">Outro</option></select></label>
@@ -301,8 +301,8 @@
       <button type="button" class="btn btn-secondary btn-sm" data-back><i data-icon="arrow-left" data-size="16"></i> Voltar</button>
       <h2 id="simTitle" tabindex="-1">Calculadora de renda fixa</h2>
     </div>
-    <div class="alert alert-info" style="margin-top:12px"><i data-icon="calculator" data-size="18"></i><div>Só uma conta: mostra quanto <b>as aplicações que você anotou</b> renderiam com o mesmo valor e prazo, pela taxa de cada uma. Nada é aplicado.</div></div>
-    <div class="card" style="margin-top:16px">
+    <div class="alert alert-info mt-12"><i data-icon="calculator" data-size="18"></i><div>Só uma conta: mostra quanto <b>as aplicações que você anotou</b> renderiam com o mesmo valor e prazo, pela taxa de cada uma. Nada é aplicado.</div></div>
+    <div class="card mt-16">
       <form class="form-grid" id="formSim" novalidate>
         <label class="field wide">Valor (R$)<input class="input" type="number" id="sValor" step="0.01" min="0.01" max="999999999.99" value="10000" inputmode="decimal"></label>
         <label class="field">Prazo<input class="input" type="number" id="sPrazo" min="1" max="36500" step="1" value="2" inputmode="numeric"></label>
@@ -318,9 +318,9 @@
         <label class="field">TR<input class="input" type="number" id="parTr" step="0.01" min="0" max="50" inputmode="decimal"></label>
         <label class="field">Custódia Tesouro<input class="input" type="number" id="parCustodia" step="0.01" min="0" max="5" inputmode="decimal"></label>
       </form>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <div class="cluster mt-14">
         <button type="button" class="btn btn-secondary btn-sm" id="btnBcb"><i data-icon="refresh" data-size="14"></i> Buscar no Banco Central</button>
-        <span class="note" style="margin:0" id="bcbStatus" aria-live="polite"></span>
+        <span class="note note-flush" id="bcbStatus" aria-live="polite"></span>
       </div>
       <p class="note" id="paramsHint"></p>
     </div>
@@ -332,7 +332,7 @@
   <footer class="util">
     <div class="status" id="saveStatus">dados protegidos por criptografia</div>
     <!-- Backup, certificado e bloqueio ficam em Configurações (menu ⋮), que aciona estes botões ocultos. -->
-    <div class="buttons" style="display:none">
+    <div class="buttons">
       <button id="btnExport"><i data-icon="download" data-size="14"></i> Exportar JSON</button>
       <button id="btnImport"><i data-icon="upload" data-size="14"></i> Importar JSON</button>
       <button id="btnReset"><i data-icon="trash" data-size="14"></i> Limpar tudo</button>
@@ -341,8 +341,8 @@
       <button id="btnBiometric"><i data-icon="settings" data-size="14"></i> Configurações</button>
       <button id="btnRecover"><i data-icon="lock" data-size="14"></i> Bloquear / recuperar PIN</button>
     </div>
-    <input type="file" id="importFile" accept="application/json">
-    <input type="file" id="importCertFile" accept="application/json" style="display:none">
+    <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain">
+    <input type="file" id="importCertFile" accept="application/json">
   </footer>
 
 </div>
@@ -353,7 +353,8 @@
 <script src="stk-pkt-secure-vault.js"></script>
 <script src="stk-pkt-secure-ui.js"></script>
 <script src="invest-engine.js"></script>
-<script src="app.js"></script>
+<script src="program.js"></script>
+<script src="apoio/stk-pkt-ponte.js"></script>
 <script src="apoio/stk-pkt-feedback.js"></script>
 <script src="apoio/stk-pkt-doacao.js" data-app="INVEST" data-flutuante="false"></script>
 
