@@ -88,3 +88,45 @@ body.report-mode .section-bar { display: none; }
 #planResumo .stat-grid { grid-template-columns: 1fr; gap: 6px; }
 #planResumo .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; }
 #planResumo .stat .v { margin-top: 0; overflow: visible; font-size: 15px; }
+
+/* ───────── Classes que substituem style="" (HTML e JS) ───────── */
+/* Espaçamento vertical */
+.mt-0 { margin-top: 0; }
+.mt-6 { margin-top: 6px; }
+.mt-12 { margin-top: 12px; }
+.mt-14 { margin-top: 14px; }
+.mt-16 { margin-top: 16px; }
+.note.note-flush { margin: 0; }
+/* Layout */
+.cluster { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cluster.cluster-end { align-items: flex-end; gap: 12px; }
+.alert-body { flex: 1; }
+.min-w-0 { min-width: 0; }
+.grow { flex: 1; }
+.txt-end { text-align: right; }
+/* Linhas e cartões */
+.row-title.row-title-wrap { white-space: normal; }
+.row-actions.row-actions-start { justify-content: flex-start; }
+.meta-card .row-actions.row-actions-start { margin-top: 10px; }
+.row.row-flush { padding: 0; border: 0; align-items: flex-start; }
+.row-meta.row-meta-top { margin-top: 8px; }
+.card.sim-card { margin-bottom: 10px; }
+.pick-list { margin-top: 12px; max-height: 50vh; overflow: auto; }
+/* Rodapé: botões ocultos (acionados pelo menu ⋮) */
+footer.util .buttons { display: none; }
+/* Valores calculados em execução chegam por custom property (--pct, --tip-x, --tip-y) */
+.alloc-bar > span { width: var(--pct, 0%); }
+.progress > span { width: var(--pct, 0%); }
+.bar i { height: var(--pct, 0%); }
+.chart-tip { left: var(--tip-x, 0); top: var(--tip-y, 0); }
+/* Categorias de gráfico/alocação (tokens --c-1 a --c-10 do kit) */
+.sw-1 { background: var(--c-1); }
+.sw-2 { background: var(--c-2); }
+.sw-3 { background: var(--c-3); }
+.sw-4 { background: var(--c-4); }
+.sw-5 { background: var(--c-5); }
+.sw-6 { background: var(--c-6); }
+.sw-7 { background: var(--c-7); }
+.sw-8 { background: var(--c-8); }
+.sw-9 { background: var(--c-9); }
+.sw-10 { background: var(--c-10); }
