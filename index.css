@@ -130,3 +130,34 @@ footer.util .buttons { display: none; }
 .sw-8 { background: var(--c-8); }
 .sw-9 { background: var(--c-9); }
 .sw-10 { background: var(--c-10); }
+
+/* ==================== RESPONSIVIDADE MULTI-DISPOSITIVO (Mariana UI/UX) ==================== */
+/* 1. Mobile Pequeno (< 380px) */
+@media (max-width: 380px) {
+  .page { padding-inline: 10px; }
+  .bars-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .bars { min-width: 320px; }
+  .meses-12 { overflow-x: auto; min-width: 320px; }
+  .legend { gap: 6px; }
+}
+
+/* 2. Tablets (641px - 1024px) */
+@media (min-width: 641px) {
+  :root { --page-max: 860px; }
+  .page { padding-inline: 24px; }
+  .bottom-nav { max-width: 600px; }
+}
+
+/* 3. Telas Médias (1025px - 1440px) */
+@media (min-width: 1025px) {
+  :root { --page-max: 1120px; }
+  .page { padding-inline: 32px; }
+  .bottom-nav { max-width: 680px; }
+}
+
+/* 4. Monitores Grandes e Ultrawide (> 1440px / 1920px - 4K) */
+@media (min-width: 1441px) {
+  :root { --page-max: 1240px; }
+  .bottom-nav { max-width: 720px; }
+}
+
